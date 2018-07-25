@@ -1,8 +1,8 @@
 .chart {
   background: lightgray;
   border: 1px solid black;
-  min-width: 200px;
-  min-height: 350px;
+  /* width: 1000px;
+  height: 800px; */
 }
 
 .bar {

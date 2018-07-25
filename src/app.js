@@ -1,99 +1,67 @@
-// let linearScale = d3
-//   .scaleLinear()
-//   .domain([0, 100])
-//   .range([0, 160])
-//   .clamp(true);
+var margin = { top: 20, right: 40, bottom: 40, left: 40 };
+var width = 500 - margin.left - margin.right;
+var height = 400 - margin.top - margin.bottom;
 
-// console.log(linearScale(1));
-// console.log(linearScale(50));
-// console.log(linearScale.invert(100));
+var fullWidth = width + margin.left + margin.right;
+var fullHeight = height + margin.top + margin.bottom;
 
-// let timeScale = d3
-//   .scaleTime()
-//   .domain([new Date(1000, 0, 1), new Date()])
-//   .range([0, 100]);
-
-// console.log(timeScale.invert(50));
-
-// let quantizeScale = d3
-//   .scaleQuantize()
-//   .domain([0, 100])
-//   .range([0, 80, 160]);
-
-// console.log(quantizeScale(50));
-// console.log(quantizeScale(99));
-// console.log(quantizeScale(20));
-
-// let ordinalScale = d3
-//   .scaleOrdinal()
-//   .domain(["poor", "good", "great"])
-//   .range([0, 80, 160]);
-
-// console.log(ordinalScale("good"));
-// console.log(ordinalScale("poor"));
-// console.log(ordinalScale("great"));
-
-// getPosts = async () => {
-//   let res = await fetch("https://jsonplaceholder.typicode.com/posts/");
-//   let data = await res.json();
-//   let set = await d3.set(data, d => d.id);
-
-//   let scale = d3
-//     .scaleLinear()
-//     .domain(extent)
-//     .range([0, 600]);
-
-//   console.log(set.values());
-// };
-// getPosts();
-
-// let link = d3
-//   .select(".title")
-//   .append("button")
-//   .style("color", "black")
-//   .html("Inventory <b>SALE</b>");
-
-// console.log(link.nodes());
-
-var scores = [
-  { name: "Bob", score: 96 },
-  { name: "Joe", score: 66 },
-  { name: "Alice", score: 78 },
-  { name: "Sally", score: 89 },
-  { name: "Jim", score: 45 }
-];
-
-var bar = d3
+var svg = d3
   .select(".chart")
   .append("svg")
-  .attr("width", 225)
-  .attr("height", 600)
-  .selectAll("rect")
-  .data(scores)
-  .enter()
+  .attr("width", fullWidth)
+  .attr("height", fullHeight)
+  .call(responsivefy)
   .append("g")
-  .attr("transform", (d, i) => `translate(0, ${i * 53} )`);
+  .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-function scaleBar(selection, scale) {
-  selection.style("transform", `scaleX(${scale})`);
+var yScale = d3
+  .scaleLinear()
+  .domain([0, 100])
+  .range([height, 0]);
+
+var yAxis = d3.axisLeft(yScale);
+svg.call(yAxis);
+
+var xScale = d3
+  .scaleTime()
+  .domain([new Date(2018, 0, 1, 6), new Date(2018, 0, 1, 12)])
+  .range([0, width]);
+
+var xAxis = d3
+  .axisBottom(xScale)
+  .ticks(d3.timeMinute.every(30))
+  .tickSize(10)
+  .tickPadding(10);
+
+svg
+  .append("g")
+  .attr("transform", `translate(0, ${height})`)
+  .call(xAxis);
+
+function responsivefy(svg) {
+  // get container + svg aspect ratio
+  var container = d3.select(svg.node().parentNode),
+    width = parseInt(svg.style("width")),
+    height = parseInt(svg.style("height")),
+    aspect = width / height;
+
+  // add viewBox and preserveAspectRatio properties,
+  // and call resize so that svg resizes on inital page load
+  svg
+    .attr("viewBox", "0 0 " + width + " " + height)
+    .attr("perserveAspectRatio", "xMinYMid")
+    .call(resize);
+
+  // to register multiple listeners for same event type,
+  // you need to add namespace, i.e., 'click.foo'
+  // necessary if you call invoke this function for multiple svgs
+  // api docs: https://github.com/mbostock/d3/wiki/Selections#on
+  d3.select(window).on("resize." + container.attr("id"), resize);
+
+  // get width of container and resize svg to fit it
+  function resize() {
+    var targetWidth = parseInt(container.style("width"));
+    svg.attr("width", targetWidth);
+    svg.attr("height", Math.round(targetWidth / aspect));
+  }
 }
-
-bar
-  .append("rect")
-  .style("width", d => d.score)
-  .attr("class", "bar")
-  .on("mouseover", function(d, i, elements) {
-    d3.select(this).call(scaleBar, 2);
-    d3.selectAll(elements)
-      .filter(":not(:hover)")
-      .style("fill-opacity", 0.5);
-  })
-  .on("mouseout", function(d, i, elements) {
-    d3.select(this).call(scaleBar, 1);
-    d3.selectAll(elements).style("fill-opacity", 1);
-  });
-
-bar
-  .append("text")
-  .attr("y", 30)
-  .text(d => d.name);

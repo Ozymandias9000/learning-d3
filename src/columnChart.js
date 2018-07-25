@@ -1,4 +1,4 @@
-var margin = { top: 20, right: 40, bottom: 40, left: 40 };
+var margin = { top: 20, right: 40, bottom: 60, left: 40 };
 var width = 500 - margin.left - margin.right;
 var height = 400 - margin.top - margin.bottom;
 
@@ -14,6 +14,15 @@ var svg = d3
   .append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+var scores = [
+  { name: "Bob", score: 96 },
+  { name: "Joe", score: 66 },
+  { name: "Alice", score: 78 },
+  { name: "Sally", score: 89 },
+  { name: "Billy Bob", score: 50 },
+  { name: "Jim", score: 45 }
+];
+
 var yScale = d3
   .scaleLinear()
   .domain([0, 100])
@@ -23,8 +32,9 @@ var yAxis = d3.axisLeft(yScale);
 svg.call(yAxis);
 
 var xScale = d3
-  .scaleTime()
-  .domain([new Date(2018, 0, 1, 6), new Date(2018, 0, 1, 12)])
+  .scaleBand()
+  .padding(0.2)
+  .domain(scores.map(d => d.name))
   .range([0, width]);
 
 var xAxis = d3
@@ -36,7 +46,21 @@ var xAxis = d3
 svg
   .append("g")
   .attr("transform", `translate(0, ${height})`)
-  .call(xAxis);
+  .call(xAxis)
+  .selectAll("text")
+  .style("text-anchor", "end")
+  .attr("transform", "rotate(-25)");
+
+svg
+  .selectAll("rect")
+  .data(scores)
+  .enter()
+  .append("rect")
+  .attr("x", d => xScale(d.name))
+  .attr("y", d => yScale(d.score))
+  .attr("width", d => xScale.bandwidth())
+  .attr("height", d => height - yScale(d.score))
+  .style("fill", "steelblue");
 
 function responsivefy(svg) {
   // get container + svg aspect ratio

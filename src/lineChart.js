@@ -566,11 +566,11 @@ const svg = d3
   .append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-const parseDates = d3.timeParse("%Y/%m/%d");
+const parseTime = d3.timeParse("%Y/%m/%d");
 
-data.forEach(co => {
-  co.values.forEach(d => {
-    d.date = parseDates(d.date);
+data.forEach(company => {
+  company.values.forEach(d => {
+    d.date = parseTime(d.date);
     d.close = +d.close;
   });
 });
@@ -586,7 +586,7 @@ const xScale = d3
 svg
   .append("g")
   .attr("transform", `translate(0, ${height})`)
-  .call(d3.axisBottom(xScale).ticks(5))
+  .call(d3.axisBottom(xScale).ticks(8))
   .selectAll("text")
   .style("text-anchor", "end")
   .attr("transform", "rotate(-25)");
@@ -601,21 +601,19 @@ const yScale = d3
 
 svg.append("g").call(d3.axisLeft(yScale));
 
-const area = d3
-  .area()
+const line = d3
+  .line()
   .x(d => xScale(d.date))
-  .y0(yScale(yScale.domain()[0]))
-  .y1(d => yScale(d.close))
-  .curve(d3.curveCatmullRom.alpha(0.1));
+  .y(d => yScale(d.close))
+  .curve(d3.curveCatmullRom.alpha(0.5));
 
 svg
-  .selectAll(".area")
+  .selectAll(".line")
   .data(data)
   .enter()
   .append("path")
-  .attr("class", "area")
-  .attr("d", d => area(d.values))
+  .attr("class", "line")
+  .attr("d", d => line(d.values))
   .style("stroke", (d, i) => ["#FF9900", "#3369E8"][i])
   .style("stroke-width", 2)
-  .style("fill", (d, i) => ["#FF9900", "#3369E8"][i])
-  .style("fill-opacity", 0.5);
+  .style("fill", "none");
